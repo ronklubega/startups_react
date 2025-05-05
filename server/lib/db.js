@@ -48,6 +48,26 @@ export const createUser = async (user) => {
   return result.insertId;
 };
 
+export const createPatient = async (patient) => {
+  const conn = await connectToDatabase();
+  const [result] = await conn.query(
+    'INSERT INTO patient (firstName, lastName, dob, nextOfKin, occupation, insurance, insNo,address, telephone, email) VALUES (?,?, ?, ?, ?, ?, ?, ?, ?, ?)',
+    [
+      patient.firstName,
+      patient.lastName,
+      patient.dob,
+      patient.nextOfKin,
+      patient.occupation,
+      patient.insurance,
+      patient.insNo,
+      patient.address,
+      patient.telephone,
+      patient.email,
+    ]
+  );
+  return result.insertId; // Return the ID of the newly created patient
+};
+
 const updateUser = async (id, user) => {
   const conn = await connectToDatabase();
   await conn.query('UPDATE users SET name = ?, email = ? WHERE id = ?', [user.name, user.email, id]);
