@@ -206,6 +206,34 @@ button {
   max-width: 1000px;
   width: 100%;
 }
+
+.visit-form select {
+  width: 100%;
+  padding: 8px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  margin-bottom: 15px;
+}
+
+.visit-form label {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 15px;
+}
+
+.visit-form button {
+  background-color: #007bff;
+  color: white;
+  padding: 10px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.visit-form button:hover {
+  background-color: #0056b3;
+}
+
 .checkbox-label {
   flex-direction: row;
   align-items: center;
@@ -217,5 +245,36 @@ button {
   gap: 20px;
   align-items: center;
   grid-column: span 3;
+}
+
+.search-container {
+  margin-bottom: 20px;
+}
+
+.search-container input {
+  width: 100%;
+  padding: 8px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
+
+.search-results {
+  list-style: none;
+  padding: 0;
+  margin: 10px 0;
+  max-height: 150px;
+  overflow-y: auto;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  background-color: #fff;
+}
+
+.search-results li {
+  padding: 8px;
+  cursor: pointer;
+}
+
+.search-results li:hover {
+  background-color: #f0f0f0;
 }
 

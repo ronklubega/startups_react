@@ -3,14 +3,59 @@ import './home.css'; // Import CSS for styling
 
 function Home() {
   const [activeTab, setActiveTab] = useState('dashboard'); // State to track the active tab
+  const [searchQuery, setSearchQuery] = useState(''); // State to hold search query
+  const [searchResults, setSearchResults] = useState([]); // State to hold search results
   // State to hold form data(patient registration)
   const[regForm,setRegForm] = useState({
     firstName:'',lastName:'',nextOfKin:'',occupation:'',insurance:'',insNo:'' ,address:'',telephone:'',email:''
 
   })
+  //create visit
+  const handleCreateVisit = async (e) => {
+    e.preventDefault(); // Prevent default form submission behavior
+  
+    try {
+      const response = await fetch('http://localhost:3000/auth/createVisit', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(visitForm), // Send the visit form data as JSON
+      });
+  
+      const data = await response.json();
+  
+      if (response.ok) {
+        alert(`Visit created successfully! Visit Number: ${data.visitNumber}`);
+        setVistForm({
+          patientNo: '',
+          patientName: '',
+          dob: '',
+          visitDate: '',
+          insurance: '',
+          cash: false,
+          service: '',
+          doctor: '',
+          speciality: '',
+          visitNumber: '',
+        }); // Reset the form
+      } else {
+        alert('Failed to create visit: ' + data.error);
+      }
+    } catch (error) {
+      console.error('Error:', error);
+      alert('An error occurred while creating the visit.');
+    }
+  };
+  // STATE TO HOLD CREATING VISIT
+  const[visitForm,setVistForm] = useState({
+    patientNo: '', patientName: '', dob: '', visitDate: '', insurance: '', cash: false, service: '', doctor: '', speciality: '', visitNumber: ''
+  })
   const HandleChange = (e) => {
-    const { name, value } = e.target;
-    setRegForm({ ...regForm, [name]: value });
+    const { name, value, type, checked } = e.target;
+    const newValue = type === 'checkbox' ? checked : value;
+    setRegForm({ ...regForm, [name]: newValue });
+    setVistForm({ ...visitForm, [name]: newValue });
   };  
   const handleSubmit = async (e) => {
     e.preventDefault(); // Prevent default form submission behavior
@@ -48,6 +93,35 @@ function Home() {
       console.error('Error:', error);
       alert('An error occurred while submitting the form.');
     }
+  };
+  const handleSearchChange = async (e) => {
+    const query = e.target.value;
+    setSearchQuery(query);
+
+    if (query.length > 2) { // Start searching after 3 characters
+      try {
+        const response = await fetch(`http://localhost:3000/auth/patients/search?query=${query}`);
+        const data = await response.json();
+        setSearchResults(data); // Update search results
+      } catch (error) {
+        console.error('Error fetching search results:', error);
+      }
+    } else {
+      setSearchResults([]); // Clear results if query is too short
+    }
+  };
+
+  const handlePatientSelect = (patient) => {
+    // Populate the form with the selected patient's details
+    setVistForm({
+      ...visitForm,
+      patientNo: patient.patientNo,
+      patientName: `${patient.firstName} ${patient.lastName}`,
+      dob: patient.dob,
+      insurance: patient.insurance,
+    });
+    setSearchQuery(''); // Clear the search input
+    setSearchResults([]); // Clear the search results
   };
   const renderContent = () => {
     switch (activeTab) {
@@ -99,29 +173,70 @@ function Home() {
       case 'createVisit':
         return (
           <div className="visit-container">
-      <form className="visit-form">
-        <label>PatientID<input type="text" /></label>
-        <label>PatientName<input type="text" /></label>
-        <label>DOB<input type="date" /></label>
+  
+  <form className="visit-form" onSubmit={handleCreateVisit}>
+    <label>
+      Patient ID
+      <input type="text" name="patientId" value={visitForm.patientNo} onChange={HandleChange} />
+    </label>
+    <label>
+      Patient Name
+      <input type="text" name="patientName" value={visitForm.patientName} onChange={HandleChange} />
+    </label>
+    <label>
+      DOB
+      <input type="text" name="dob" value={visitForm.dob} onChange={HandleChange} />
+    </label>
+    <label>
+      Date
+      <input type="date" name="visitDate" value={visitForm.visitDate} onChange={HandleChange} />
+    </label>
+    <label>
+      Insurance
+      <input type="text" name="insurance" value={visitForm.insurance} onChange={HandleChange} />
+    </label>
+    <label>
+      Cash
+      <input type="checkbox" name="cash" checked={visitForm.cash} onChange={HandleChange} />
+    </label>
 
-        <label>Date<input type="date" /></label>
-        <label>INSUARANCE<input type="text" /></label>
-        <label className="checkbox-label">Cash<input type="checkbox" /></label>
+    <label>
+      Service
+      <select name="service" value={visitForm.service} onChange={HandleChange}>
+        <option value="">Select Service</option>
+        <option value="consultation">Consultation</option>
+        <option value="review">Review</option>
+        <option value="emergency">Emergency</option>
+      </select>
+    </label>
 
-        <label>Service<input type="text" /></label>
-        <label>Doctor<input type="text" /></label>
-        <label>Speciality<input type="text" /></label>
+    <label>
+      Doctor
+      <select name="doctor" value={visitForm.doctor} onChange={HandleChange}>
+        <option value="">Select Doctor</option>
+        <option value="drJon">Dr. Jon</option>
+        <option value="drEmma">Dr. Emma</option>
+      </select>
+    </label>
 
-        <div className="checkbox-group">
-          <label className="checkbox-label">OPD<input type="checkbox" /></label>
-          <label className="checkbox-label">IPD<input type="checkbox" /></label>
-        </div>
+    <label>
+      Speciality
+      <select name="speciality" value={visitForm.speciality} onChange={HandleChange}>
+        <option value="">Select Speciality</option>
+        <option value="generalDoctor">General Doctor</option>
+        <option value="physician">Physician</option>
+        <option value="gynecologist">Gynecologist</option>
+      </select>
+    </label>
 
-        <label>VisitNumber<input type="text" /></label>
+    {/* <label>
+      Visit Number
+      <input type="text" name="visitNumber" value={visitForm.visitNumber} onChange={HandleChange} />
+    </label> */}
 
-        <button type="submit">CREAT VISIT</button>
-      </form>
-    </div>
+    <button type="submit">CREATE VISIT</button>
+  </form>
+</div>
         );
       case 'reports':
         return (
@@ -161,6 +276,28 @@ function Home() {
           <div className="card">Lab Results</div>
           <div className="card">Prescriptions</div>
         </div>
+        <div className="search-container">
+    <label>
+      Search Patient:
+      <input
+        type="text"
+        placeholder="Enter patient name or ID"
+        value={searchQuery}
+        onChange={handleSearchChange}
+      />
+    </label>
+    <ul className="search-results">
+      {searchResults.map((patient) => (
+        <li
+          key={patient.patientNo}
+          onClick={() => handlePatientSelect(patient)}
+        >
+          {patient.firstName} {patient.lastName} - {patient.patientNo}
+        </li>
+      ))}
+    </ul>
+  </div>
+
         
         <section>{renderContent()}</section>
       </main>
