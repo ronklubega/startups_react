@@ -1,0 +1,70 @@
+.doctor-container {
+  padding: 20px;
+}
+
+.visit-list ul {
+  list-style: none;
+  padding: 0;
+}
+
+.visit-list li {
+  cursor: pointer;
+  padding: 10px;
+  border: 1px solid #ccc;
+  margin-bottom: 5px;
+}
+
+.visit-list li:hover {
+  background-color: #f0f0f0;
+}
+
+.visit-details {
+  margin-top: 20px;
+}
+
+.visit-details form label {
+  display: block;
+  margin-bottom: 10px;
+}
+
+.visit-details form textarea,
+.visit-details form input {
+  width: 100%;
+  padding: 8px;
+  margin-bottom: 15px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
+
+.visit-details form button {
+  padding: 10px 15px;
+  background-color: #007bff;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.visit-details form button:hover {
+  background-color: #0056b3;
+}
+
+.visit-table table {
+  width: 100%;
+  border-collapse: collapse; /* Ensures borders don't double up */
+  margin-bottom: 20px;
+}
+
+.visit-table th, .visit-table td {
+  border: 1px solid #ccc; /* Adds a border to table cells */
+  padding: 10px;
+  text-align: left;
+}
+
+.visit-table th {
+  background-color: #f4f4f4; /* Light background for header */
+}
+
+.visit-table tr:hover {
+  background-color: #f9f9f9; /* Highlight row on hover */
+}

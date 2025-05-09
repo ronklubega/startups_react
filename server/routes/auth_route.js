@@ -72,11 +72,28 @@ router.get('/patients/search', async (req, res) => {
 
   try {
     const conn = await connectToDatabase();
-    const [rows] = await conn.query(
-      'SELECT patientNo, firstName, lastName, dob, insurance FROM patient WHERE firstName LIKE ? OR lastName LIKE ? OR patientNo LIKE ?',
-      [`%${query}%`, `%${query}%`, `%${query}%`]
-      
-    );
+const [rows] = await conn.query(
+  `SELECT 
+     patient.patientNo, 
+     patient.firstName, 
+     patient.lastName, 
+     patient.dob, 
+     patient.insurance, 
+     visits.visitNumber, 
+     visits.service,
+     visits.doctor
+   FROM 
+     patient 
+   LEFT JOIN 
+     visits 
+   ON 
+     patient.patientNo = visits.patientNo 
+   WHERE 
+     patient.firstName LIKE ? OR 
+     patient.lastName LIKE ? OR 
+     patient.patientNo LIKE ?`,
+  [`%${query}%`, `%${query}%`, `%${query}%`]
+);
     
     res.status(200).json(rows);
   } catch (error) {
@@ -119,4 +136,97 @@ router.post('/createVisit', async (req, res) => {
   }
 });
 
+// nurse vitlas route
+router.post('/nurseVitals', async (req, res) => {
+  const { patientId, visitNumber,doctor,service, temperature, bloodPressure, heartRate, complaints } = req.body;
+
+  if (!patientId || !temperature || !bloodPressure || !heartRate || !complaints) {
+    return res.status(400).json({ error: 'All fields are required' });
+  }
+
+  try {
+    const conn = await connectToDatabase();
+    const [result] = await conn.query(
+      'INSERT INTO vitals (patientId, visitNumber,doctor,service,temperature, bloodPressure, heartRate, complaints) VALUES (?,?,?,?, ?, ?, ?, ?)',
+      [patientId,visitNumber,doctor,service, temperature, bloodPressure, heartRate, complaints]
+    );
+
+    res.status(201).json({ message: 'Vitals and complaints submitted successfully', id: result.insertId });
+  } catch (error) {
+    console.error('Error submitting vitals:', error);
+    res.status(500).json({ error: 'Failed to submit vitals' });
+  }
+});
+//to delete ende point ,not required 
+router.get('/auth/patientVisitDetails', async (req, res) => {
+  const { patientNo } = req.query;
+
+  if (!patientNo) {
+    return res.status(400).json({ error: 'Patient number is required' });
+  }
+
+  try {
+    // Query to fetch patient and visit details
+    const query = `
+      SELECT 
+        patients.patientNo, 
+        patients.firstName, 
+        patients.lastName, 
+        patients.dob, 
+        patients.insurance, 
+        visits.visitNumber, 
+        visits.visitDate, 
+        visits.doctor
+      FROM 
+        patients
+      LEFT JOIN 
+        visits 
+      ON 
+        patients.patientNo = visits.patientNo
+      WHERE 
+        patients.patientNo = ?;
+    `;
+
+    const [results] = await db.execute(query, [patientNo]);
+
+    if (results.length === 0) {
+      return res.status(404).json({ error: 'No data found for the given patient number' });
+    }
+
+    res.json(results[0]); // Return the first result
+  } catch (error) {
+    console.error('Error fetching patient and visit details:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+
+//get visits for doctor
+router.get('/getVisits', async (req, res) => {
+  try {
+    const conn = await connectToDatabase();
+    const [rows] = await conn.query('SELECT * FROM visits');
+    res.status(200).json(rows);
+  } catch (error) {
+    console.error('Error fetching visits:', error);
+    res.status(500).json({ error: 'Failed to fetch visits' });
+  }
+});
+
+//submit doctor notes
+router.post('/submitDoctorNotes', async (req, res) => {
+  const { visitId, provisionalDiagnosis, labRecommendation, prescription, dosage, duration, additionalNotes } = req.body;
+
+  try {
+    const conn = await connectToDatabase();
+    await conn.query(
+      'INSERT INTO doctor_notes (visitId, provisionalDiagnosis, labRecommendation, prescription, dosage, duration, additionalNotes) VALUES (?, ?, ?, ?, ?, ?, ?)',
+      [visitId, provisionalDiagnosis, labRecommendation, prescription, dosage, duration, additionalNotes]
+    );
+    res.status(201).json({ message: 'Doctor notes submitted successfully' });
+  } catch (error) {
+    console.error('Error submitting doctor notes:', error);
+    res.status(500).json({ error: 'Failed to submit doctor notes' });
+  }
+});
 module.exports = router;

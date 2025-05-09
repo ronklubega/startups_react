@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import './home.css'; // Import CSS for styling
+import Doctor from './doctor';
 
 function Home() {
   const [activeTab, setActiveTab] = useState('dashboard'); // State to track the active tab
@@ -51,11 +52,20 @@ function Home() {
   const[visitForm,setVistForm] = useState({
     patientNo: '', patientName: '', dob: '', visitDate: '', insurance: '', cash: false, service: '', doctor: '', speciality: '', visitNumber: ''
   })
+  const[nurseForm, setNurseForm] = useState({
+    patientId: '',
+    visitNumber:'',
+    temperature: '',
+    bloodPressure: '',
+    heartRate: '',
+    complaints: '',
+  });
   const HandleChange = (e) => {
     const { name, value, type, checked } = e.target;
     const newValue = type === 'checkbox' ? checked : value;
     setRegForm({ ...regForm, [name]: newValue });
     setVistForm({ ...visitForm, [name]: newValue });
+    setNurseForm({ ...nurseForm, [name]: value });
   };  
   const handleSubmit = async (e) => {
     e.preventDefault(); // Prevent default form submission behavior
@@ -111,7 +121,42 @@ function Home() {
     }
   };
 
+  //nurse form submission
+  const handleNurseSubmit = async (e) => {
+    e.preventDefault();
+  
+    try {
+      const response = await fetch('http://localhost:3000/auth/nurseVitals', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(nurseForm),
+      });
+  
+      const data = await response.json();
+  
+      if (response.ok) {
+        alert('Vitals and complaints submitted successfully!');
+        setNurseForm({
+          patientId: '',
+          visitNumber:'',
+          temperature: '',
+          bloodPressure: '',
+          heartRate: '',
+          complaints: '',
+        }); // Reset the form
+      } else {
+        alert('Failed to submit vitals: ' + data.error);
+      }
+    } catch (error) {
+      console.error('Error:', error);
+      alert('An error occurred while submitting the form.');
+    }
+  };
+
   const handlePatientSelect = (patient) => {
+    
     // Populate the form with the selected patient's details
     setVistForm({
       ...visitForm,
@@ -120,6 +165,15 @@ function Home() {
       dob: patient.dob,
       insurance: patient.insurance,
     });
+    // Populate the nurse form with visit number and patient ID
+  setNurseForm({
+    ...nurseForm,
+    patientId: patient.patientNo,
+    doctor: patient.doctor || '', // Assuming doctor is part of the patient object
+    service: patient.service || '', // Assuming service is part of the patient object
+    visitNumber: patient.visitNumber || '', // Assuming visitNumber is part of the patient object
+  });
+    //populate the nurses's form with visit number 
     setSearchQuery(''); // Clear the search input
     setSearchResults([]); // Clear the search results
   };
@@ -229,20 +283,102 @@ function Home() {
       </select>
     </label>
 
-    {/* <label>
-      Visit Number
-      <input type="text" name="visitNumber" value={visitForm.visitNumber} onChange={HandleChange} />
-    </label> */}
+    
 
     <button type="submit">CREATE VISIT</button>
   </form>
 </div>
         );
-      case 'reports':
+      case 'doctor1':
+        return <Doctor/>
+      case 'nurse':
         return (
-          <div>
-            <h2>Reports</h2>
-            <p>View and generate reports for patient registrations, billing, and visits.</p>
+          <div className="nurse-container">
+            <h2>Patient Vitals and Complaints</h2>
+            <form className="visit-form" onSubmit={handleNurseSubmit}>
+              <label>
+                Patient ID:
+                <input
+                  type="text"
+                  name="patientId"
+                  value={nurseForm.patientId}
+                  onChange={HandleChange}
+                  required
+                />
+                
+              </label>
+              <label>
+                VisitNo:
+                <input
+                  type="text"
+                  name="visitNumber"
+                  value={nurseForm.visitNumber}
+                  onChange={HandleChange}
+                  required
+                />
+              </label>
+              <label>
+                Service:
+                <input
+                  type="text"
+                  name="service"
+                  value={nurseForm.service}
+                  onChange={HandleChange}
+                  required
+                />
+              </label>
+              <label>
+                Doctor:
+                <input
+                  type="text"
+                  name="doctor"
+                  value={nurseForm.doctor}
+                  onChange={HandleChange}
+                  required
+                />
+              </label>
+
+              <label>
+                Temperature (°C):
+                <input
+                  type="number"
+                  name="temperature"
+                  value={nurseForm.temperature}
+                  onChange={HandleChange}
+                  required
+                />
+              </label>
+              <label>
+                Blood Pressure (mmHg):
+                <input
+                  type="text"
+                  name="bloodPressure"
+                  value={nurseForm.bloodPressure}
+                  onChange={HandleChange}
+                  required
+                />
+              </label>
+              <label>
+                Heart Rate (bpm):
+                <input
+                  type="number"
+                  name="heartRate"
+                  value={nurseForm.heartRate}
+                  onChange={HandleChange}
+                  required
+                />
+              </label>
+              <label>
+                Complaints:
+                <textarea
+                  name="complaints"
+                  value={nurseForm.complaints}
+                  onChange={HandleChange}
+                  required
+                />
+              </label>
+              <button type="submit">Submit Vitals</button>
+            </form>
           </div>
         );
       default:
@@ -259,12 +395,9 @@ function Home() {
           <li onClick={() => setActiveTab('register')}>Register Patient</li>
           <li onClick={() => setActiveTab('billing')}>Billing</li>
           <li onClick={() => setActiveTab('createVisit')}>Create Visit</li>
-          <li onClick={() => setActiveTab('reports')}>Reports</li>
-          <li onClick={() => setActiveTab('reports')}>Doctor</li>
-          <li onClick={() => setActiveTab('reports')}>Nurse</li>
-          <li onClick={() => setActiveTab('reports')}>Radiology</li>
-          <li onClick={() => setActiveTab('reports')}>Pharmacy</li>
-          <li onClick={() => setActiveTab('reports')}>Lab</li>
+          <li onClick={() => setActiveTab('nurse')}>Nurse</li>
+          <li onClick={() => setActiveTab('doctor1')}>Doctor</li>
+          
         </ul>
       </aside>
 
